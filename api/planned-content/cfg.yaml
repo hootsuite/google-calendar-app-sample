@@ -1,0 +1,6 @@
+# yaml-language-server: $schema=../../tools/configuration-schema.json
+package: planned_content
+generate:
+  std-http-server: true
+  models: true
+output: planned_content.gen.go

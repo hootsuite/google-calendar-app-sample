@@ -1,0 +1,6 @@
+# yaml-language-server: $schema=../../tools/configuration-schema.json
+package: status
+generate:
+  std-http-server: true
+  models: true
+output: status.gen.go
