@@ -7,7 +7,7 @@ info:
   title: plannedcontent-app-idl
   version: 1.0.0-local
 servers:
-- url: https://api.example.com/v1
+- url: https://api.example.com
 tags:
 - description: Endpoints that need to implemented to support planned content
   name: PlannedContent
