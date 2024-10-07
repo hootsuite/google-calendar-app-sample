@@ -7,6 +7,7 @@ import (
 
 	api "github.com/hootsuite/google-calendar-app-sample/api/planned-content"
 	"github.com/hootsuite/google-calendar-app-sample/api/status"
+	"github.com/joho/godotenv"
 
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
@@ -14,6 +15,22 @@ import (
 )
 
 func main() {
+	env, _ := godotenv.Read(".env")
+	CLIENT_ID := os.Getenv("CLIENT_ID")
+	if CLIENT_ID == "" {
+		CLIENT_ID = env["CLIENT_ID"]
+		if CLIENT_ID == "" {
+			log.Fatal("CLIENT_ID is required")
+		}
+	}
+	CLIENT_SECRET := os.Getenv("CLIENT_SECRET")
+	if CLIENT_SECRET == "" {
+		CLIENT_SECRET = env["CLIENT_SECRET"]
+		if CLIENT_SECRET == "" {
+			log.Fatal("CLIENT_SECRET is required")
+		}
+	}
+
 	// Get the client id and secret from google cloud credential.
 	// url: https://console.cloud.google.com/apis/credentials
 	// access them from environment variable
