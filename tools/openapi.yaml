@@ -1,0 +1,507 @@
+openapi: 3.0.0
+info:
+  description: Generic IDL for planned content apps in app directory
+  license:
+    name: Apache-2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0.html
+  title: plannedcontent-app-idl
+  version: 1.0.0-local
+servers:
+- url: https://api.example.com
+tags:
+- description: Endpoints that need to implemented to support planned content
+  name: PlannedContent
+- description: Endpoints that need to be implemented to support OAuth2
+  name: OAuth2
+- description: Endpoints for status checks
+  name: Status
+paths:
+  /oauth2/authorize:
+    get:
+      description: <p> <a href='https://tools.ietf.org/html/rfc6749#section-3.1'>OAuth2
+        Authorize</a> endpoint. Please note that this authorization url is configured
+        in the developer portal. </p>
+      operationId: OAuth2Authorize
+      parameters:
+      - in: query
+        name: response_type
+        required: true
+        schema:
+          type: string
+      - in: query
+        name: client_id
+        required: true
+        schema:
+          type: string
+      - in: query
+        name: redirect_uri
+        required: true
+        schema:
+          type: string
+      - in: query
+        name: state
+        required: true
+        schema:
+          type: string
+      - in: query
+        name: scope
+        required: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: successful operation
+        "400":
+          description: Bad request.
+        "500":
+          description: Unexpected error.
+      summary: OAuth2 Authorization
+      tags:
+      - OAuth2
+  /oauth2/token:
+    post:
+      description: |-
+        <p> <a href='https://tools.ietf.org/html/rfc6749#section-3.2'>OAuth2 Token</a> endpoint. Please note that this authorization url is configured in the developer portal. The required parameters depend on the grant type requested: </p>
+        <p>Authorization Code:</p> <ul> <li>grant_type: authorization_code</li> <li>client_id</li> <li>client_secret</li> <li>code</li> <li>redirect_uri</li> </ul>
+        <p>Refresh Token</p> <ul> <li>grant_type: refresh_token</li> <li>client_id </li> <li>client_secret </li> <li>refresh_token </li> </ul>
+      operationId: Oauth2Token
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenRequestPayload'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+          description: successful operation
+        "400":
+          description: Bad request.
+        "500":
+          description: Unexpected error.
+      summary: Oauth2 token endpoint
+      tags:
+      - OAuth2
+  /planned-content:
+    get:
+      description: This endpoint returns planned content items based on the provided
+        parameters.
+      operationId: GetPlannedContent
+      parameters:
+      - in: header
+        name: Authorization
+        required: true
+        schema:
+          type: string
+      - in: query
+        name: startDate
+        required: false
+        schema:
+          format: date
+          type: string
+      - in: query
+        name: endDate
+        required: false
+        schema:
+          format: date
+          type: string
+      - in: query
+        name: parentId
+        required: false
+        schema:
+          type: string
+      - in: query
+        name: cursor
+        required: false
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlannedContentResponse'
+          description: successful operation
+        "400":
+          description: Bad request.
+        "500":
+          description: Unexpected error.
+      summary: fetch planned content
+      tags:
+      - PlannedContent
+  /status:
+    get:
+      description: Handles the status endpoint
+      operationId: GetStatus
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StatusResponse'
+          description: successful operation
+        "400":
+          description: Bad request.
+        "500":
+          description: Unexpected error.
+      summary: Get status of server
+      tags:
+      - Status
+components:
+  schemas:
+    TokenRequestPayload:
+      example:
+        refresh_token: refresh_token
+        code: code
+        grant_type: grant_type
+        redirect_uri: redirect_uri
+        client_secret: client_secret
+        client_id: client_id
+      properties:
+        grant_type:
+          type: string
+        code:
+          type: string
+        redirect_uri:
+          type: string
+        client_id:
+          type: string
+        client_secret:
+          type: string
+        refresh_token:
+          type: string
+      type: object
+    TokenResponse:
+      example:
+        access_token: access_token
+        refresh_token: refresh_token
+        token_type: token_type
+        expires_in: expires_in
+      properties:
+        access_token:
+          type: string
+        token_type:
+          type: string
+        expires_in:
+          type: string
+        refresh_token:
+          type: string
+      type: object
+    PlannedContentResponse:
+      example:
+        data:
+        - attachments:
+          - subtitles: subtitles
+            subtitleFileName: subtitleFileName
+            thumbnail:
+              width: 5
+              url: url
+              height: 2
+            original:
+              sizeInBytes: 5
+              width: 6
+              url: url
+              height: 1
+            durationInSeconds: 0
+            name: name
+            mediaType: mediaType
+            id: id
+            mimeType: mimeType
+          - subtitles: subtitles
+            subtitleFileName: subtitleFileName
+            thumbnail:
+              width: 5
+              url: url
+              height: 2
+            original:
+              sizeInBytes: 5
+              width: 6
+              url: url
+              height: 1
+            durationInSeconds: 0
+            name: name
+            mediaType: mediaType
+            id: id
+            mimeType: mimeType
+          author:
+            firstName: firstName
+            lastName: lastName
+            avatarUrl: avatarUrl
+            id: id
+          name: name
+          mediaType: folder
+          links:
+          - links
+          - links
+          dates:
+            due: due
+            created: created
+            updated: updated
+          id: id
+          body: body
+          permalink: permalink
+          tags:
+          - tags
+          - tags
+        - attachments:
+          - subtitles: subtitles
+            subtitleFileName: subtitleFileName
+            thumbnail:
+              width: 5
+              url: url
+              height: 2
+            original:
+              sizeInBytes: 5
+              width: 6
+              url: url
+              height: 1
+            durationInSeconds: 0
+            name: name
+            mediaType: mediaType
+            id: id
+            mimeType: mimeType
+          - subtitles: subtitles
+            subtitleFileName: subtitleFileName
+            thumbnail:
+              width: 5
+              url: url
+              height: 2
+            original:
+              sizeInBytes: 5
+              width: 6
+              url: url
+              height: 1
+            durationInSeconds: 0
+            name: name
+            mediaType: mediaType
+            id: id
+            mimeType: mimeType
+          author:
+            firstName: firstName
+            lastName: lastName
+            avatarUrl: avatarUrl
+            id: id
+          name: name
+          mediaType: folder
+          links:
+          - links
+          - links
+          dates:
+            due: due
+            created: created
+            updated: updated
+          id: id
+          body: body
+          permalink: permalink
+          tags:
+          - tags
+          - tags
+        meta:
+          cursor: cursor
+      properties:
+        data:
+          items:
+            $ref: '#/components/schemas/PlannedContentItem'
+          type: array
+        meta:
+          $ref: '#/components/schemas/Meta'
+      required:
+      - data
+      type: object
+    PlannedContentItem:
+      example:
+        attachments:
+        - subtitles: subtitles
+          subtitleFileName: subtitleFileName
+          thumbnail:
+            width: 5
+            url: url
+            height: 2
+          original:
+            sizeInBytes: 5
+            width: 6
+            url: url
+            height: 1
+          durationInSeconds: 0
+          name: name
+          mediaType: mediaType
+          id: id
+          mimeType: mimeType
+        - subtitles: subtitles
+          subtitleFileName: subtitleFileName
+          thumbnail:
+            width: 5
+            url: url
+            height: 2
+          original:
+            sizeInBytes: 5
+            width: 6
+            url: url
+            height: 1
+          durationInSeconds: 0
+          name: name
+          mediaType: mediaType
+          id: id
+          mimeType: mimeType
+        author:
+          firstName: firstName
+          lastName: lastName
+          avatarUrl: avatarUrl
+          id: id
+        name: name
+        mediaType: folder
+        links:
+        - links
+        - links
+        dates:
+          due: due
+          created: created
+          updated: updated
+        id: id
+        body: body
+        permalink: permalink
+        tags:
+        - tags
+        - tags
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        body:
+          type: string
+        mediaType:
+          enum:
+          - folder
+          - plannedContent
+          type: string
+        permalink:
+          type: string
+        tags:
+          items:
+            type: string
+          type: array
+        links:
+          items:
+            type: string
+          type: array
+        attachments:
+          items:
+            $ref: '#/components/schemas/Attachment'
+          type: array
+        author:
+          $ref: '#/components/schemas/AuthorMetadata'
+        dates:
+          $ref: '#/components/schemas/Dates'
+      required:
+      - id
+      type: object
+    Attachment:
+      example:
+        subtitles: subtitles
+        subtitleFileName: subtitleFileName
+        thumbnail:
+          width: 5
+          url: url
+          height: 2
+        original:
+          sizeInBytes: 5
+          width: 6
+          url: url
+          height: 1
+        durationInSeconds: 0
+        name: name
+        mediaType: mediaType
+        id: id
+        mimeType: mimeType
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        mediaType:
+          type: string
+        mimeType:
+          type: string
+        durationInSeconds:
+          type: integer
+        subtitleFileName:
+          type: string
+        subtitles:
+          type: string
+        original:
+          $ref: '#/components/schemas/ImageMetadata'
+        thumbnail:
+          $ref: '#/components/schemas/ThumbnailMetadata'
+      required:
+      - id
+      type: object
+    ImageMetadata:
+      example:
+        sizeInBytes: 5
+        width: 6
+        url: url
+        height: 1
+      properties:
+        url:
+          type: string
+        width:
+          type: integer
+        height:
+          type: integer
+        sizeInBytes:
+          type: integer
+      type: object
+    ThumbnailMetadata:
+      example:
+        width: 5
+        url: url
+        height: 2
+      properties:
+        url:
+          type: string
+        width:
+          type: integer
+        height:
+          type: integer
+      type: object
+    AuthorMetadata:
+      example:
+        firstName: firstName
+        lastName: lastName
+        avatarUrl: avatarUrl
+        id: id
+      properties:
+        id:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        avatarUrl:
+          type: string
+      type: object
+    Dates:
+      example:
+        due: due
+        created: created
+        updated: updated
+      properties:
+        created:
+          type: string
+        updated:
+          type: string
+        due:
+          type: string
+      type: object
+    Meta:
+      example:
+        cursor: cursor
+      properties:
+        cursor:
+          type: string
+      type: object
+    StatusResponse:
+      type: string
