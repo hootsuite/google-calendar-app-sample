@@ -101,9 +101,12 @@ type GetPlannedContentParams struct {
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
-	// fetch planned content
-	// (GET /planned-content)
+	// Retrieve planned content
+	// (GET /v1/planned-content)
 	GetPlannedContent(w http.ResponseWriter, r *http.Request, params GetPlannedContentParams)
+	// Get status of server
+	// (GET /v1/status)
+	GetStatus(w http.ResponseWriter, r *http.Request)
 }
 
 // ServerInterfaceWrapper converts contexts to parameters.
@@ -183,6 +186,21 @@ func (siw *ServerInterfaceWrapper) GetPlannedContent(w http.ResponseWriter, r *h
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.GetPlannedContent(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r.WithContext(ctx))
+}
+
+// GetStatus operation middleware
+func (siw *ServerInterfaceWrapper) GetStatus(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetStatus(w, r)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -306,7 +324,8 @@ func HandlerWithOptions(si ServerInterface, options StdHTTPServerOptions) http.H
 		ErrorHandlerFunc:   options.ErrorHandlerFunc,
 	}
 
-	m.HandleFunc("GET "+options.BaseURL+"/planned-content", wrapper.GetPlannedContent)
+	m.HandleFunc("GET "+options.BaseURL+"/v1/planned-content", wrapper.GetPlannedContent)
+	m.HandleFunc("GET "+options.BaseURL+"/v1/status", wrapper.GetStatus)
 
 	return m
 }

@@ -1,0 +1,587 @@
+---
+swagger: "2.0"
+info:
+  description: "An API for searching and retrieving media library content.\n"
+  version: "1.3.0"
+  title: "HoostSuite App API"
+  termsOfService: ""
+host: "localhost:8080"
+basePath: "/serviceName"
+tags:
+- name: OAuth2
+  description: Endpoints that need to be implemented to support OAuth2
+- name: Media
+  description: Endpoints to perform actions on Media
+- name: PlannedContent
+  description: Endpoints that need to implemented to support planned content  
+- name: Status
+  description: Endpoints for status checks
+schemes:
+- "http"
+consumes:
+- "application/json"
+produces:
+- "application/json"
+paths:
+  /v1/media:
+    get:
+      tags:
+      - Media
+      summary: "Retrieve media"
+      description: "Retrieve media content and optionally filter by search criteria and mediaType. If no parameters are given, the app should return either the contents of the base folder if it has a folder hierarchy or trending/popular media results otherwise."
+      parameters:
+      - name: "query"
+        in: "query"
+        required: false
+        type: "string"
+        description: "Search query term or phrase."
+        example: "fluffy cat"
+      - name: "mediaType"
+        in: "query"
+        required: false
+        type: "string"
+        enum: &MEDIATYPES
+          - "AnimatedGif"
+          - "Image"
+          - "Folder"
+          - "Video"
+        description: "Search filter to only get results of a specific type."
+      - name: "parentId"
+        in: "query"
+        required: false
+        type: "string"
+        description: "The ID of the parent (like a folder) that you want to get the children of."
+        example: "12345"
+      - name: "cursor"
+        in: "query"
+        required: false
+        type: "string"
+        description: "A developer-defined string returned by a previous call to this endpoint. Used to return another set of results for a given search query. All params from the previous request must be encoded in the cursor, so that a subsequent call can be made with only the cursor as a param to return the next or previous set of results."
+      - name: "Authorization"
+        in: "header"
+        required: false
+        type: "string"
+        description: |
+          "Authorization token that allows Hootsuite to issue commands on a user's behalf. <br/>
+          The payload will look like `Bearer {auth_token}`"
+          example: "Bearer ahsi1jdi2kcnwjxlo10"
+      responses:
+        200:
+          schema:
+            $ref: "#/definitions/MediaResponseEnvelope"
+  /v1/planned-content:
+    get:
+      tags:
+      - PlannedContent
+      summary: "Retrieve planned content"
+      description: "Fetches planned content for a given date range. If no parameters are given, the app should return the contents of the base folder if it has a folder hierarchy."
+      operationId: GetPlannedContent
+      parameters:
+      - $ref: "#/parameters/Authorization"
+      # - in: query
+      #   name: startDate
+      #   required: false
+      #   type: date
+      #   description: "The start date of the range to fetch planned content for."
+      #   example: "2019-03-16"
+      # - in: query
+      #   name: endDate
+      #   required: false
+      #   type: date
+      #   description: "The end date of the range to fetch planned content for."
+      #   example: "2019-03-16"
+      # - in: query
+      #   name: parentId
+      #   required: false
+      #   type: string
+      #   description: "The ID of the parent (like a folder) that you want to get the children of."
+      #   example: "12345"
+      # - in: query
+      #   name: cursor
+      #   required: false
+      #   type: "string"
+      #   description: "A developer-defined string returned by a previous call to this endpoint. Used to return another set of results for a given search query. All params from the previous request must be encoded in the cursor, so that a subsequent call can be made with only the cursor as a param to return the next or previous set of results."
+      responses:
+        200:
+          schema:
+            $ref: '#/definitions/PlannedContentResponse'
+          description: successful operation
+        "400":
+          description: Bad request.
+        "500":
+          description: Unexpected error.
+  /v1/status:
+    get:
+      tags:
+      - Status
+      summary: "Status check"
+      description: "Check to see that the app is responsive."
+      responses:
+        200:
+          description: "Empty response verifying app is responsive."
+  /oauth2/authorize:
+    get:
+      tags:
+      - OAuth2
+      summary: "OAuth2 Authorization"
+      description: "<p>
+                     <a href='https://tools.ietf.org/html/rfc6749#section-3.1'>OAuth2 Authorize</a>
+                     endpoint. Please note that this authorization url is configured in the developer portal.
+                    </p>"
+      parameters:
+      - name: "response_type"
+        in: "query"
+        required: true
+        type: "string"
+        description: "The expected response type. This field should be `code`"
+        example: "code"
+      - name: "client_id"
+        in: "query"
+        required: true
+        type: "string"
+        description: "The client ID assigned to Hootsuite."
+        example: "1948194"
+      - name: "redirect_uri"
+        in: "query"
+        required: true
+        type: "string"
+        description: "The URI that expected authorization code should be sent to."
+        example: "https://api-auth.hootsuite.com/v1/apps/197271/oauth2/callback"
+      - name: "state"
+        in: "query"
+        required: true
+        type: "string"
+        description: "An encrypted value that is generated by Hootsuite"
+        example: "za81js910s"
+      - name: "scope"
+        in: "query"
+        required: false
+        type: "string"
+        description: "Optional values that dictate the permissions given to Hootsuite"
+        example: "hootsuite"
+      responses:
+        200:
+          description: success
+  /oauth2/token:
+    post:
+      tags:
+      - OAuth2
+      summary: "OAuth2 Token"
+      description: "<p>
+        <a href='https://tools.ietf.org/html/rfc6749#section-3.2'>OAuth2 Token</a>
+        endpoint. Please note that this authorization url is configured in the developer portal.
+        The required parameters depend on the grant type requested:
+        </p>
+
+        <p>Authorization Code:</p>
+        <ul>
+          <li>grant_type: authorization_code</li>
+          <li>client_id</li>
+          <li>client_secret</li>
+          <li>code</li>
+          <li>redirect_uri</li>
+        </ul>
+
+        <p>Refresh Token</p>
+        <ul>
+          <li>grant_type: refresh_token</li>
+          <li>client_id </li>
+          <li>client_secret </li>
+          <li>refresh_token </li>
+        </ul>"
+      parameters:
+      - name: tokenRequest
+        in: body
+        schema:
+          $ref: '#/definitions/OAuth2TokenRequest'
+      responses:
+        200:
+          description: success
+          schema:
+            $ref: "#/definitions/OAuth2TokenResponse"
+parameters:
+    - name: "Authorization"
+      in: "header"
+      required: false
+      type: "string"
+      description: |
+        "Authorization token that allows Hootsuite to issue commands on a user's behalf. <br/>
+        The payload will look like `Bearer {auth_token}`"
+      example: "Bearer ahsi1jdi2kcnwjxlo10"
+
+definitions:
+  MediaResponseEnvelope:
+    type: "object"
+    required:
+    - "data"
+    - "metadata"
+    properties:
+      data:
+        type: "array"
+        description: "The media results"
+        items:
+          $ref: "#/definitions/MediaEntryResult"
+      metadata:
+        type: "object"
+        description: "The metadata response envelope."
+        required:
+        - "cursor"
+        properties:
+          cursor:
+            type: "object"
+            description: "The cursor used to get the next or previous page of results. Should only be absent if there are no results beyond those already returned."
+            properties:
+              next:
+                type: "string"
+                description: "A developer-defined string that can be used as a parameter in the search to get the next set of results for the given search parameters."
+                example: "encodedxjatcd83nn39d99093kknext"
+              previous:
+                type: "string"
+                description: "A developer-defined string that can be used as a parameter in the search to get the previous set of results for the given search parameters."
+                example: "encodedxjatcd83nn39d99093kkprev"
+  MediaEntryResult:
+    type: "object"
+    required:
+    - "mediaType"
+    properties:
+      id:
+        type: "string"
+        description: "Resource ID. This field must be included for folders."
+        example: "12345qqq"
+      name:
+        type: "string"
+        description: "Resource filename."
+        example: "my_picture.jpg"
+      mediaType:
+        type: "string"
+        enum: *MEDIATYPES
+        example: "Image"
+      mimeType:
+        type: "string"
+        description: "This field is optional ONLY in the case where the original.url field ends in an identifiable file extension (such as '.jpg'). In every other case it is required. Regardless of whether the mimeType is included or inferred from the URL, the response must be one of the enumerated mimeTypes."
+        enum:
+        - "image/jpeg"
+        - "image/png"
+        - "image/gif"
+        - "video/mp4"
+        - "application/vnd.hootsuite.folder"
+        example: "image/jpeg"
+      original:
+        $ref: "#/definitions/MediaInfo"
+      thumbnail:
+        $ref: "#/definitions/ThumbnailInfo"
+      durationInSeconds:
+        type: "int"
+        description: "This field is REQUIRED for videos."
+        example: 120
+      subtitleFileName:
+        type: "string"
+        description: "Name for the SubRip subtitles file in the format given here: https://www.facebook.com/help/www/1528795707381162"
+        example: "example.en_US.srt"
+      subtitles:
+        type: "string"
+        description: "URL to the SubRip subtitles file (max 200kB)"
+        example: "https://imagezzzz.com/my_subtitles.srt"
+      tags:
+        type: "array"
+        description: "Tags for the image, these may be included in posts when the media item is attached"
+        items:
+          type: "string"
+  MediaInfo:
+    type: "object"
+    description: "The original media file. This field is required for all files except folders."
+    required:
+    - "url"
+    - "width"
+    - "height"
+    - "sizeInBytes"
+    properties:
+      url:
+        type: "string"
+        description: "URL to the media resource."
+        example: "https://imagezzzz.com/my_image.jpg"
+      width:
+        type: "integer"
+        description: "Width in pixels."
+        example: 200
+      height:
+        type: "integer"
+        description: "Height in pixels."
+        example: 200
+      sizeInBytes:
+        type: "integer"
+        description: "File size in bytes."
+        example: 300
+  ThumbnailInfo:
+    type: "object"
+    description: "A smaller thumbnail for display in a selector. This field is REQUIRED for all files except folders."
+    required:
+    - "url"
+    - "width"
+    - "height"
+    properties:
+      url:
+        type: "string"
+        description: "URL to the thumbnail."
+        example: "https://imagezzzz.com/my_image_small.jpg"
+      width:
+        type: "integer"
+        description: "Width in pixels."
+        example: 100
+      height:
+        type: "integer"
+        description: "Height in pixels."
+        example: 100
+  OAuth2TokenRequest:
+      type: object
+      required:
+        - grant_type
+      properties:
+        grant_type:
+          type: "string"
+          description: "The expected OAuth2 grant type. This field should be `authorization_code` or `refresh_token`"
+          example: "authorization_code"
+        code:
+          type: "string"
+          description: "The authorization code granted by the application. Used with grant type: authorization_code"
+          example: "1as314rdfv291si2"
+        client_id:
+          type: "string"
+          description: "The client ID assigned to Hootsuite. Used with grant type: authorization_code, refresh_token"
+          example: "1948194"
+        client_secret:
+          in: "body"
+          type: "string"
+          description: "The client secret assigned to Hootsuite. Used with grant type: authorization_code, refresh_token"
+          example: "1948194"
+        redirect_uri:
+          in: "body"
+          type: "string"
+          description: "The URI that expected authorization code was sent to. Used with grant type: authorization_code"
+          example: "https://api-auth.hootsuite.com/v1/apps/197271/oauth2/callback"
+        refresh_token:
+          type: "string"
+          description: "The refresh token for the member that needs its token to be refreshed. Used with grant type: refresh_token"
+          example: 'null'
+  OAuth2TokenResponse:
+      type: object
+      properties:
+        access_token:
+          type: "string"
+          description: "The member's assigned access token"
+          example: "wj1ds92jdowk132"
+        refresh_token:
+          type: "string"
+          description: "The member's assigned refresh token "
+          example: "ai298dj2od01kde"
+        expires_in:
+          type: "string"
+          description: "The number of seconds in which the access token is valid"
+          example: "3600"
+        token_type:
+          type: "string"
+          description: "The type of access token"
+          example: "ai298dj2od01kde"
+  PlannedContentResponse:
+    required:
+    - data
+    type: object
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/PlannedContentItem'
+        type: array
+      meta:
+        $ref: '#/definitions/Meta'
+  PlannedContentItem:
+    example:
+      attachments:
+      - subtitles: subtitles
+        subtitleFileName: subtitleFileName
+        thumbnail:
+          width: 5
+          url: url
+          height: 2
+        original:
+          sizeInBytes: 5
+          width: 6
+          url: url
+          height: 1
+        durationInSeconds: 0
+        name: name
+        mediaType: mediaType
+        id: id
+        mimeType: mimeType
+      - subtitles: subtitles
+        subtitleFileName: subtitleFileName
+        thumbnail:
+          width: 5
+          url: url
+          height: 2
+        original:
+          sizeInBytes: 5
+          width: 6
+          url: url
+          height: 1
+        durationInSeconds: 0
+        name: name
+        mediaType: mediaType
+        id: id
+        mimeType: mimeType
+      author:
+        firstName: firstName
+        lastName: lastName
+        avatarUrl: avatarUrl
+        id: id
+      name: name
+      mediaType: folder
+      links:
+      - links
+      - links
+      dates:
+        due: due
+        created: created
+        updated: updated
+      id: id
+      body: body
+      permalink: permalink
+      tags:
+      - tags
+      - tags
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+      body:
+        type: string
+      mediaType:
+        enum:
+        - folder
+        - plannedContent
+        type: string
+      permalink:
+        type: string
+      tags:
+        items:
+          type: string
+        type: array
+      links:
+        items:
+          type: string
+        type: array
+      attachments:
+        items:
+          $ref: '#/definitions/Attachment'
+        type: array
+      author:
+        $ref: '#/definitions/AuthorMetadata'
+      dates:
+        $ref: '#/definitions/Dates'
+    required:
+    - id
+    type: object
+  Attachment:
+    example:
+      subtitles: subtitles
+      subtitleFileName: subtitleFileName
+      thumbnail:
+        width: 5
+        url: url
+        height: 2
+      original:
+        sizeInBytes: 5
+        width: 6
+        url: url
+        height: 1
+      durationInSeconds: 0
+      name: name
+      mediaType: mediaType
+      id: id
+      mimeType: mimeType
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+      mediaType:
+        type: string
+      mimeType:
+        type: string
+      durationInSeconds:
+        type: integer
+      subtitleFileName:
+        type: string
+      subtitles:
+        type: string
+      original:
+        $ref: '#/definitions/ImageMetadata'
+      thumbnail:
+        $ref: '#/definitions/ThumbnailMetadata'
+    required:
+    - id
+    type: object
+  ImageMetadata:
+    example:
+      sizeInBytes: 5
+      width: 6
+      url: url
+      height: 1
+    properties:
+      url:
+        type: string
+      width:
+        type: integer
+      height:
+        type: integer
+      sizeInBytes:
+        type: integer
+    type: object
+  ThumbnailMetadata:
+    example:
+      width: 5
+      url: url
+      height: 2
+    properties:
+      url:
+        type: string
+      width:
+        type: integer
+      height:
+        type: integer
+    type: object
+  AuthorMetadata:
+    example:
+      firstName: firstName
+      lastName: lastName
+      avatarUrl: avatarUrl
+      id: id
+    properties:
+      id:
+        type: string
+      firstName:
+        type: string
+      lastName:
+        type: string
+      avatarUrl:
+        type: string
+    type: object
+  Dates:
+    example:
+      due: due
+      created: created
+      updated: updated
+    properties:
+      created:
+        type: string
+      updated:
+        type: string
+      due:
+        type: string
+    type: object
+  Meta:
+    example:
+      cursor: cursor
+    properties:
+      cursor:
+        type: string
