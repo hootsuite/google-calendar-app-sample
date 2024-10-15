@@ -1,4 +1,4 @@
-//go:generate go run github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen --config=cfg.yaml -include-tags=PlannedContent ../../tools/openapi.yaml
+//go:generate go run github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen --config=cfg.yaml -include-tags=PlannedContent,Status ../../tools/openapi.json
 package planned_content
 
 import (
@@ -27,6 +27,10 @@ func NewServer(config *oauth2.Config) *Server {
 	return &Server{
 		config: config,
 	}
+}
+
+func (s *Server) GetStatus(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusOK)
 }
 
 func (s *Server) GetPlannedContent(w http.ResponseWriter, r *http.Request, params GetPlannedContentParams) {

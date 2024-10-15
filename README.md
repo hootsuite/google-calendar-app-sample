@@ -13,6 +13,7 @@
 ## Requirements
 - This project uses Go Lang version 1.22. You can view the instructions on how to install it [here](https://go.dev/doc/install).
 - Access to a Google Account
+- Uses the latest OpenAPI doc which you can find [here](https://app-directory.s3.amazonaws.com/docs/outbound-api/redoc-static.html#tag/PlannedContent)
 
 ## Set-up Google
 We will be connecting to the google calendar you will need to have and account there and set-up access to Google Calendar.  You can read up about the [Google Calendar API](https://developers.google.com/calendar).

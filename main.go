@@ -6,7 +6,6 @@ import (
 	"os"
 
 	api "github.com/hootsuite/google-calendar-app-sample/api/planned-content"
-	"github.com/hootsuite/google-calendar-app-sample/api/status"
 	"github.com/joho/godotenv"
 
 	"golang.org/x/oauth2"
@@ -47,16 +46,14 @@ func main() {
 		Endpoint: google.Endpoint,
 	}
 
-	api_server := api.NewServer(conf)
-	status_server := status.NewServer()
+	server := api.NewServer(conf)
 
-	mux := http.NewServeMux()
+	r := http.NewServeMux()
 
-	mux.Handle("/v1/", http.StripPrefix("/v1", api.HandlerFromMux(api_server, http.NewServeMux())))
-	mux.Handle("/", status.HandlerFromMux(status_server, http.NewServeMux()))
+	h := api.HandlerFromMux(server, r)
 
 	s := &http.Server{
-		Handler: mux,
+		Handler: h,
 		Addr:    "0.0.0.0:8000",
 	}
 
